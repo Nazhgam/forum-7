@@ -11,6 +11,20 @@ import (
 
 func VerifyUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Allow requests from any origin
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		// Set additional CORS headers if needed
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if r.Method == http.MethodOptions {
+			// Handle preflight requests for CORS
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
 		cookie, err := r.Cookie("Session")
 		if err == http.ErrNoCookie {
 			cookie = setCookie(w)

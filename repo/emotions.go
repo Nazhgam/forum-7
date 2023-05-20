@@ -16,15 +16,17 @@ import (
 type IEmotion interface {
 	AddEmotion(e *entity.Emotion) error
 	UpdateEmotion(e entity.Emotion) error
-	GetByEmotionPostId(id int) ([]entity.Emotion, error)
-	CheckEmotionForPost(postID, userID int) (bool, error)
-	CheckEmotionForComment(commentID, userID int) (bool, error)
+	GetEmotionByPostCommentId(pId, cId int) ([]entity.Emotion, error)
+	CheckEmotionForPost(e *entity.Emotion) (bool, error)
+	CheckEmotionForComment(e *entity.Emotion) (bool, error)
+	DeleteEmotionById(id int) error
 	DeleteByPostId(id int) error
 	DeleteByCommentId(id int64) error
 	DeleteByComments(id []int) error
 }
 
 func (r repo) AddEmotion(e *entity.Emotion) error {
+	fmt.Println(e)
 	stmt, err := r.db.Prepare("INSERT INTO emotions (post_id, comment_id, user_id, likes, dislikes) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		r.log.Printf("error while to prepare datas to write into the emotion table: %s\n", err.Error())
@@ -42,7 +44,7 @@ func (r repo) AddEmotion(e *entity.Emotion) error {
 }
 
 func (r repo) UpdateEmotion(e entity.Emotion) error {
-	stmt, err := r.db.Prepare("UPDATE emotions SET like = ?, dislike = ? WHERE id = ?")
+	stmt, err := r.db.Prepare("UPDATE emotions SET likes = ?, dislikes = ? WHERE id = ?")
 	if err != nil {
 		r.log.Printf("error while to prepare update datas in emotion table: %s\n", err.Error())
 		return err
@@ -58,12 +60,12 @@ func (r repo) UpdateEmotion(e entity.Emotion) error {
 	return nil
 }
 
-func (r repo) GetByEmotionPostId(id int) ([]entity.Emotion, error) {
+func (r repo) GetEmotionByPostCommentId(pId, cId int) ([]entity.Emotion, error) {
 	selectQuery := `
-		SELECT id, post_id, user_id, like, dislike
-		FROM emotions WHERE id = ?
+		SELECT id, post_id, comment_id, user_id, likes, dislikes
+		FROM emotions WHERE post_id = ? OR comment_id = ?
 	`
-	rows, err := r.db.Query(selectQuery, id)
+	rows, err := r.db.Query(selectQuery, pId, cId)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +74,7 @@ func (r repo) GetByEmotionPostId(id int) ([]entity.Emotion, error) {
 	emotions := []entity.Emotion{}
 	for rows.Next() {
 		var e entity.Emotion
-		err := rows.Scan(&e.Id, &e.PostID, &e.UserID, &e.Likes, &e.Dislikes)
+		err := rows.Scan(&e.Id, &e.PostID, &e.CommentID, &e.UserID, &e.Likes, &e.Dislikes)
 		if err != nil {
 			return nil, err
 		}
@@ -82,34 +84,61 @@ func (r repo) GetByEmotionPostId(id int) ([]entity.Emotion, error) {
 	return emotions, nil
 }
 
-func (r repo) CheckEmotionForPost(postID, userID int) (bool, error) {
-	fmt.Println("income ", postID, userID)
+func (r repo) CheckEmotionForPost(e *entity.Emotion) (bool, error) {
 	countQuery := `
-		SELECT COUNT(*)
+		SELECT id, COUNT(*)
 		FROM emotions
 		WHERE post_id = ? AND user_id = ?
 	`
-	var count int
-	err := r.db.QueryRow(countQuery, postID, userID).Scan(&count)
+	var (
+		count int
+		id    *int64
+	)
+	err := r.db.QueryRow(countQuery, e.PostID, e.UserID).Scan(&id, &count)
 	if err != nil {
 		return false, err
 	}
-	fmt.Println(count)
+	if id != nil {
+		e.Id = *id
+	}
 	return count > 0, nil
 }
 
-func (r repo) CheckEmotionForComment(commentID, userID int) (bool, error) {
+func (r repo) CheckEmotionForComment(e *entity.Emotion) (bool, error) {
 	countQuery := `
-		SELECT COUNT(*)
+		SELECT id, likes, dislikes, COUNT(*)
 		FROM emotions
 		WHERE comment_id = ? AND user_id = ?
 	`
-	var count int
-	err := r.db.QueryRow(countQuery, commentID, userID).Scan(&count)
+	var (
+		count int
+		id    *int64
+	)
+	err := r.db.QueryRow(countQuery, e.CommentID, e.UserID).Scan(&id, &count)
 	if err != nil {
 		return false, err
 	}
+	if id != nil {
+		e.Id = *id
+	}
 	return count > 0, nil
+}
+
+func (r repo) DeleteEmotionById(id int) error {
+	stmt, err := r.db.Prepare("DELETE FROM emotions WHERE id = ?")
+	if err != nil {
+		r.log.Printf("error while to prepare delete user by id in post table: %s\n", err.Error())
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		r.log.Printf("error while exec prepared delete user by id in post table: %s\n", err.Error())
+		return err
+	}
+
+	return nil
 }
 
 func (r repo) DeleteByPostId(id int) error {

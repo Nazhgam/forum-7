@@ -18,5 +18,4 @@ func (h Handler) Json(w http.ResponseWriter, status int, payload interface{}) {
 		}
 		w.Write(body)
 	}
-
 }

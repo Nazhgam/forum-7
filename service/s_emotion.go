@@ -3,48 +3,55 @@ package service
 import (
 	"errors"
 	"fmt"
-
 	"forum/entity"
 )
 
-func (s *service) AddEmotionToPost(e *entity.Emotion) error {
+func (s *service) AddEmotion(e *entity.Emotion) error {
 	if (e.Likes && e.Dislikes) || (!e.Likes && !e.Dislikes) {
 		return errors.New("Error emotion service (likes and dislikes)")
 	}
 
-	if e.PostID == 0 {
+	if e.CommentID == 0 && e.PostID == 0 {
 		return errors.New("Error emotion service (post_id and comment_id)")
 	}
-	fmt.Println("service", e)
 
-	exist, err := s.repo.CheckEmotionForPost(int(e.PostID), int(e.UserID))
+	check, err := s.CheckEmotion(e)
 	if err != nil {
 		return err
 	}
-
-	if exist {
-		fmt.Println("bargoi uje like")
-		return nil
+	switch check {
+	case 0:
+		return s.repo.AddEmotion(e)
+	case 1:
+		return s.repo.UpdateEmotion(*e)
+	default:
+		return s.repo.DeleteEmotionById(int(e.Id))
 	}
-	return s.repo.AddEmotion(e)
 }
 
-func (s *service) AddEmotionToComment(e *entity.Emotion) error {
-	if (e.Likes && e.Dislikes) || (!e.Likes && !e.Dislikes) {
-		return errors.New("Error emotion service (likes and dislikes)")
-	}
-
-	if e.CommentID == 0 {
-		return errors.New("Error emotion service (post_id and comment_id)")
-	}
-
-	exist, err := s.repo.CheckEmotionForComment(int(e.CommentID), int(e.UserID))
+func (s *service) CheckEmotion(e *entity.Emotion) (int, error) {
+	res, err := s.repo.GetEmotionByPostCommentId(int(e.PostID), int(e.CommentID))
 	if err != nil {
-		return err
+		return 0, err
 	}
-
-	if exist {
-		return nil
+	var emotions []entity.Emotion
+	for i := range res {
+		if res[i].UserID == e.UserID {
+			emotions = append(emotions, res[i])
+		}
 	}
-	return s.repo.AddEmotion(e)
+	fmt.Println(emotions)
+	switch len(emotions) {
+	case 0:
+		return 0, nil
+	case 1:
+		e.Id = emotions[0].Id
+		if e.Likes == emotions[0].Likes && e.Dislikes == emotions[0].Dislikes {
+			return 2, nil
+		} else {
+			return 1, nil
+		}
+	default:
+		return 0, errors.New("found a lot of emotion by given parameters")
+	}
 }

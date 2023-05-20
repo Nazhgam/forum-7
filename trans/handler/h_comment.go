@@ -12,9 +12,7 @@ func (h Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	comment := entity.Comment{}
 
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		h.Json(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -25,15 +23,11 @@ func (h Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	comment.UserId = user.Id
 
 	if err := h.svc.CreateComment(&comment); err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		h.Json(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("comment kostym"))
+	h.Json(w, http.StatusOK, "comment kostym")
 	return
 }
 
@@ -47,6 +41,6 @@ func (h Handler) DeleteCommentByID(w http.ResponseWriter, r *http.Request) {
 		h.Json(w, http.StatusInternalServerError, err)
 		return
 	}
-	h.Json(w, http.StatusOK, []byte("bzr jok"))
+	h.Json(w, http.StatusOK, "bzr jok")
 	return
 }

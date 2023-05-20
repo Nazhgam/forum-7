@@ -2,7 +2,6 @@ package repo
 
 import (
 	"database/sql"
-
 	"forum/entity"
 )
 

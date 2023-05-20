@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"forum/service"
 	"log"
 	"net/http"
@@ -26,6 +27,8 @@ func (h Handler) Home(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+	fmt.Printf("%+v\n", res)
 
 	json.NewEncoder(w).Encode(res)
 }

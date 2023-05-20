@@ -1,9 +1,10 @@
 package main
 
 import (
-	"forum/trans/server"
 	"log"
 	"os"
+
+	"forum/trans/server"
 )
 
 func main() {

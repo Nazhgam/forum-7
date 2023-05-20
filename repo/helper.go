@@ -4,8 +4,6 @@ import (
 	"database/sql"
 )
 
-//
-// createTables creates User, Post, Comment, and Profile tables
 func createTables(db *sql.DB) error {
 	// Create User table
 	_, err := db.Exec(`
@@ -60,8 +58,6 @@ func createTables(db *sql.DB) error {
 			content TEXT,
 			created_at TIMESTAMP,
 			updated_at TIMESTAMP,
-			likes INTEGER DEFAULT 0,
-			dislikes INTEGER DEFAULT 0,
 			FOREIGN KEY (user_id) REFERENCES users(id),
 			FOREIGN KEY (post_id) REFERENCES posts(id)
 		)
@@ -93,6 +89,7 @@ func createTables(db *sql.DB) error {
 		id INTEGER PRIMARY KEY,
 		post_id INTEGER NOT NULL,
 		user_id INTEGER NOT NULL,
+		comment_id INTEGER NOT NULL,
 		likes BOOLEAN NOT NULL,
 		dislikes BOOLEAN NOT NULL,
 		FOREIGN KEY (post_id) REFERENCES posts(id)

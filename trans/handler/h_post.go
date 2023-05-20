@@ -2,21 +2,18 @@ package handler
 
 import (
 	"encoding/json"
+	"forum/entity"
+	"forum/entity/cerror"
 	"net/http"
 	"strconv"
 	"time"
-
-	"forum/entity"
-	"forum/entity/cerror"
 )
 
 func (h Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	post := entity.Post{}
 
 	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		h.Json(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -27,15 +24,10 @@ func (h Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	post.UserId = user.Id
 
 	if err := h.svc.CreatePost(&post); err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		h.Json(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("kostim"))
+	h.Json(w, http.StatusOK, "kostim")
 	return
 }
 
@@ -43,9 +35,7 @@ func (h Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	post := entity.Post{}
 
 	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		h.Json(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -64,7 +54,7 @@ func (h Handler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resPost, err := h.svc.GetPostByID(id)
+	resPost, err := h.svc.GetPostByID(int64(id))
 	if err != nil {
 		h.Json(w, http.StatusInternalServerError, err)
 		return
@@ -75,48 +65,44 @@ func (h Handler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resCom, err := h.svc.GetCommentByPostID(int64(id))
-	if err != nil {
-		h.Json(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	response := struct {
-		Post    *entity.Post
-		Comment []entity.Comment
-	}{
-		Post:    resPost,
-		Comment: resCom,
-	}
-
-	h.Json(w, http.StatusOK, response)
+	h.Json(w, http.StatusOK, resPost)
 	return
 }
 
 func (h Handler) MostLikedCategory(w http.ResponseWriter, r *http.Request) {
 	res, err := h.svc.GetMostLikedCategoryPosts("Anime")
 	if err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		h.Json(w, http.StatusInternalServerError, err)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
+	return
+}
+
+func (h Handler) MostLikedPost(w http.ResponseWriter, r *http.Request) {
+	res, err := h.svc.GetMostLikedPosts()
+	if err != nil {
+		h.Json(w, http.StatusInternalServerError, err)
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(res)
+	return
 }
 
-func (h Handler) MostLikedPost(w http.ResponseWriter, r *http.Request) {
-	res, err := h.svc.GetMostLikedPosts()
+func (h Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-
-		w.Write([]byte(err.Error()))
+		h.Json(w, http.StatusBadRequest, err)
+		return
 	}
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(res)
+	if err := h.svc.DeletePostByID(int64(id)); err != nil {
+		h.Json(w, http.DefaultMaxHeaderBytes, err)
+		return
+	}
+	h.Json(w, http.StatusOK, "BAZAR JOK")
 }

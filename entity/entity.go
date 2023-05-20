@@ -84,3 +84,8 @@ type Emotion struct {
 	Likes     bool  `json:"likes"`
 	Dislikes  bool  `json:"dislikes"`
 }
+
+type PostByID struct {
+	Post
+	Comments []Comment
+}

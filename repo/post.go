@@ -12,7 +12,6 @@ type IPost interface {
 	DeletePostByID(id int64) error
 	GetTopPostsByLikes() ([]entity.Post, error)
 	GetTopPostsByCategoryLikes(category string) ([]entity.Post, error)
-	// GetCommentIds(id int) ([]int, error)
 	GetAllPosts() ([]entity.Post, error)
 }
 
@@ -183,11 +182,11 @@ func (r repo) GetTopPostsByLikes() ([]entity.Post, error) {
     COUNT(CASE WHEN e.likes = 1 THEN e.id END) AS likes_count,
     COUNT(CASE WHEN e.dislikes = 1 THEN e.id END) AS dislikes_count
 	FROM posts p
-	LEFT JOIN category c ON p.id = c.post_id
+
 	LEFT JOIN emotions e ON p.id = e.post_id
 	
-    GROUP BY p.id, p.title, p.content, p.user_id, p.created_at, p.updated_at, c.name
-	ORDER BY  p.created_at DESC
+    GROUP BY p.id, p.title, p.content, p.user_id, p.created_at, p.updated_at
+	ORDER BY  likes_count DESC
 	`
 	rows, err := r.db.Query(query)
 	if err != nil {

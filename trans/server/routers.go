@@ -16,11 +16,12 @@ func (s Server) Routers(r *router.Router) {
 	r.Delete("/comment", s.handler.DeleteCommentByID)
 
 	r.Post("/post", s.handler.CreatePost)
-	r.Get("/post", s.handler.GetPostByID)
-	r.Get("/post/categ/:categ", s.handler.MostLikedCategory)
-	r.Get("/post/most_liked", s.handler.MostLikedPost)
-	r.Post("/post/like", s.handler.AddEmotionToPost)
 	r.Put("/post", s.handler.UpdatePost)
+	r.Get("/post", s.handler.GetPostByID)
+	r.Get("/post/most_liked", s.handler.MostLikedPost)
+	r.Get("/post/categ", s.handler.MostLikedCategory)
+	r.Post("/post/like", s.handler.AddEmotionToPost)
+	r.Delete("/post", s.handler.Delete)
 
 	// user
 }

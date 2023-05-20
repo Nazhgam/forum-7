@@ -2,17 +2,25 @@ package service
 
 import (
 	"errors"
-
 	"forum/entity"
 )
 
-func (s *service) GetPostByID(id int) (*entity.Post, error) {
-	res, err := s.repo.GetPostByID(int64(id))
+func (s *service) GetPostByID(id int64) (p *entity.PostByID, err error) {
+	res, err := s.repo.GetPostByID(id)
+	if err != nil {
+		return nil, err
+	}
+	comments, err := s.GetCommentByPostID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return res, nil
+	p = &entity.PostByID{
+		Post:     *res,
+		Comments: comments,
+	}
+
+	return p, nil
 }
 
 func (s *service) GetAllPosts() ([]entity.Post, error) {
@@ -58,4 +66,15 @@ func (s *service) Update(p entity.Post) (*entity.Post, error) {
 		return nil, errors.New("empty content on update")
 	}
 	return s.repo.UpdatePost(p)
+}
+
+func (s *service) DeletePostByID(postId int64) error {
+	if err := s.DeleteComments(postId); err != nil {
+		return err
+	}
+
+	if err := s.repo.DeleteByPostId(int(postId)); err != nil {
+		return err
+	}
+	return s.repo.DeletePostByID(postId)
 }

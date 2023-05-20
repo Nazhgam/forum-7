@@ -1,0 +1,52 @@
+type IProfile interface {
+	Create(p *entity.Profile) error
+	GetByID(id int64) (*entity.Profile, error)
+	Update(p entity.Profile) error
+	DeleteByID(id int64) error
+}
+
+type IUser interface {
+	Create(user *entity.User) error
+	GetByID(id int64) (*entity.User, error)
+	Update(user entity.User) error
+	
+	CheckUsernameForExist(email string) (int, error)
+	GetUserByEmail(email string) (*entity.User, error)
+}
+type IPost interface {
+	Create(p *entity.Post) error
+	GetByID(id int64) (*entity.Post, error)
+	Update(p entity.Post) (*entity.Post, error)
+	DeleteByID(id int64) error
+	
+	GetTopPostsByLikes() ([]entity.Post, error)
+	GetTopPostsByCategoryLikes(category string) ([]entity.Post, error)
+	GetAllPosts() ([]entity.Post, error)
+}
+
+type IEmotion interface {
+	Create(e *entity.Emotion) error
+	Update(e entity.Emotion) error
+	GetByID(pId, cId int) ([]entity.Emotion, error)
+	DeleteById(id int) error
+
+	CheckEmotionForPost(e *entity.Emotion) (bool, error)
+	CheckEmotionForComment(e *entity.Emotion) (bool, error)
+	DeleteByPostId(id int) error
+	DeleteByCommentId(id int64) error
+	DeleteByComments(id []int) error
+}
+type IComment interface {
+	Create(c *entity.Comment) error
+	GetByPostID(id int64) ([]entity.Comment, error)
+	Update(c entity.Comment) error
+	DeleteByID(id int64) error
+	
+	DeleteCommentByPostID(id int64) error
+}
+type ICateg interface {
+	Create(c *entity.Category) error
+	GetCategory(categ string) (*entity.Category, error)// id
+	GetCategoryByPostID(id int64) ([]string, error)
+	DeleteCategoryByPostID(id int64) error
+}

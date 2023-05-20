@@ -11,12 +11,13 @@ type IService interface {
 	GetMostLikedPosts() ([]entity.Post, error)
 
 	GetAllPosts() ([]entity.Post, error)
-	GetPostByID(id int) (*entity.Post, error)
+	GetPostByID(id int64) (p *entity.PostByID, err error)
 
 	SignUp(user *entity.User) error
 	LogIn(user *entity.User) (entity.User, error)
 
 	CreatePost(post *entity.Post) error
+	DeletePostByID(postId int64) error
 	Update(p entity.Post) (*entity.Post, error)
 
 	CreateComment(comment *entity.Comment) error
@@ -24,8 +25,7 @@ type IService interface {
 	DeleteComments(postId int64) error
 	DeleteCommentByID(id int64) error
 
-	AddEmotionToPost(e *entity.Emotion) error
-	AddEmotionToComment(e *entity.Emotion) error
+	AddEmotion(e *entity.Emotion) error
 }
 
 type service struct {

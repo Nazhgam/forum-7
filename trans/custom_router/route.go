@@ -41,7 +41,6 @@ func (r *Router) Delete(path string, handler Handler) {
 // from request of client we find handler function if it is exist in Router
 func (r *Router) getHandler(path, method string) (Handler, error) {
 	for _, route := range r.routes {
-
 		if path == route.Path && route.Method == method {
 			return route.Handler, nil
 		}
