@@ -7,7 +7,7 @@ const categoryBtn = document.querySelector('#categoryBtn');
 const categoryList = document.createElement('ul');
 categoryList.classList.add('category-list');
 let isCategoryListVisible = false;
-
+  
 signupBtn.addEventListener('click', () => {
     window.location.href = 'http://localhost:8080/signup';
 });
