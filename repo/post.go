@@ -217,14 +217,15 @@ func (r repo) GetTopPostsByLikes() ([]entity.Post, error) {
 // получить все посты из базы данных в порядке, определенном запросом
 func (r repo) GetAllPosts() ([]entity.Post, error) {
 	rows, err := r.db.Query(`
-	SELECT p.id, p.title, p.content, p.user_id, p.created_at, p.updated_at, c.name, 
+	SELECT p.id, p.title, p.content, p.user_id,  u.username, p.created_at, p.updated_at, c.name,
     COUNT(CASE WHEN e.likes = 1 THEN e.id END) AS likes_count,
     COUNT(CASE WHEN e.dislikes = 1 THEN e.id END) AS dislikes_count
 	FROM posts p
 	LEFT JOIN category c ON p.id = c.post_id
+	LEFT JOIN users u ON p.user_id = u.id
 	LEFT JOIN emotions e ON p.id = e.post_id
-    GROUP BY p.id, p.title, p.content, p.user_id, p.created_at, p.updated_at, c.name
-	ORDER BY p.created_at DESC
+	GROUP BY p.id, p.title, p.content, p.user_id, p.created_at, p.updated_at, c.name
+	ORDER BY p.created_at DESC;
 	`)
 	if err != nil {
 		r.log.Printf("error while to query Get All Posts: %s\n", err.Error())
@@ -236,7 +237,7 @@ func (r repo) GetAllPosts() ([]entity.Post, error) {
 	for rows.Next() {
 		var post entity.Post
 		var categ string
-		err := rows.Scan(&post.Id, &post.Title, &post.Content, &post.UserId, &post.CreatedAt, &post.UpdatedAt, &categ, &post.Likes, &post.Dislikes)
+		err := rows.Scan(&post.Id, &post.Title, &post.Content, &post.UserId, &post.UserName, &post.CreatedAt, &post.UpdatedAt, &categ, &post.Likes, &post.Dislikes)
 		if err != nil {
 			r.log.Printf("error while to scan Get All Posts: %s\n", err.Error())
 			return nil, err

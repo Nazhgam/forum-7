@@ -41,6 +41,7 @@ type Post struct {
 	Id        int64      `json:"id"`
 	Category  []string   `json:"category"`
 	UserId    int64      `json:"user_id"`
+	UserName  string     `json:"user_name"`
 	Title     string     `json:"title"`
 	Content   string     `json:"content"`
 	CreatedAt time.Time  `json:"createdAt"`

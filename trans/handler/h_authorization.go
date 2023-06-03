@@ -71,6 +71,4 @@ func (h Handler) LogOut(w http.ResponseWriter, r *http.Request) {
 		MaxAge: -1,
 	}
 	http.SetCookie(w, cookie)
-
-	http.Redirect(w, r, "/home", http.StatusSeeOther)
 }
