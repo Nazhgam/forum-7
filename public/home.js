@@ -15,7 +15,7 @@ signupBtn.addEventListener('click', () => {
 loginBtn.addEventListener('click', () => {
     window.location.href = 'http://localhost:8080/login';
 });
-
+ 
 logoutBtn.addEventListener('click', () => {
     window.location.href = 'http://localhost:4000/logout';
 });
